@@ -2,9 +2,12 @@ package com.blurrn.blurview.blur;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.RenderEffect;
 import android.graphics.RenderNode;
 import android.graphics.Shader;
+import android.graphics.BlendMode;
+import android.graphics.BlendModeColorFilter;
 
 import androidx.annotation.NonNull;
 
@@ -21,6 +24,9 @@ public class RenderEffectBlur {
 
     private int height, width;
 
+    // Tint strength (0–255). Adjust to taste.
+    private static final int TINT_ALPHA = 1; // ~47% opacity
+
     public RenderEffectBlur() {
     }
 
@@ -31,11 +37,27 @@ public class RenderEffectBlur {
             width = bitmap.getWidth();
             node.setPosition(0, 0, width, height);
         }
+
         Canvas canvas = node.beginRecording();
         canvas.drawBitmap(bitmap, 0, 0, null);
         node.endRecording();
-        node.setRenderEffect(RenderEffect.createBlurEffect(blurRadius, blurRadius, Shader.TileMode.MIRROR));
-        // returning not blurred bitmap, because the rendering relies on the RenderNode
+
+        // --- blur + red‑tint chain ---
+        RenderEffect blurEffect =
+                RenderEffect.createBlurEffect(blurRadius, blurRadius, Shader.TileMode.MIRROR);
+
+        RenderEffect tintEffect =
+                RenderEffect.createColorFilterEffect(
+                        new BlendModeColorFilter(
+                                Color.argb(TINT_ALPHA, 255, 255, 255), // red
+                                BlendMode.SRC_ATOP));
+
+        // First blur, then apply tint
+        RenderEffect chained = RenderEffect.createChainEffect(tintEffect, blurEffect);
+        node.setRenderEffect(chained);
+        // --------------------------------
+
+        // returning the original bitmap; rendering happens via RenderNode
         return bitmap;
     }
 
@@ -55,5 +77,4 @@ public class RenderEffectBlur {
     public void render(@NonNull Canvas canvas, @NonNull Bitmap bitmap) {
         canvas.drawRenderNode(node);
     }
-
 }

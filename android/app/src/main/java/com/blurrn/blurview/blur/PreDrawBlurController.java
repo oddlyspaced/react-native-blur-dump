@@ -2,6 +2,7 @@ package com.blurrn.blurview.blur;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -110,6 +111,7 @@ public final class PreDrawBlurController implements BlurController {
 
         int left = blurViewLocation[0] - rootLocation[0];
         int top = blurViewLocation[1] - rootLocation[1];
+        Log.d("BlurView", "Position: " + left + " // " + top);
 
         // https://github.com/Dimezis/BlurView/issues/128
         float scaleFactorH = (float) blurView.getHeight() / internalBitmap.getHeight();
@@ -142,7 +144,7 @@ public final class PreDrawBlurController implements BlurController {
         blurAlgorithm.render(canvas, internalBitmap);
         canvas.restore();
         if (overlayColor != TRANSPARENT) {
-            canvas.drawColor(overlayColor);
+//            canvas.drawColor(overlayColor);
         }
         return true;
     }
