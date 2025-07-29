@@ -2,15 +2,12 @@ package com.blurrn.blurview.blur;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 /**
  * Blur Controller that handles all blur logic for the attached View.
@@ -41,23 +38,17 @@ public final class PreDrawBlurController implements BlurController {
     private final int[] rootLocation = new int[2];
     private final int[] blurViewLocation = new int[2];
 
-    private final ViewTreeObserver.OnPreDrawListener drawListener = new ViewTreeObserver.OnPreDrawListener() {
-        @Override
-        public boolean onPreDraw() {
-            // Not invalidating a View here, just updating the Bitmap.
-            // This relies on the HW accelerated bitmap drawing behavior in Android
-            // If the bitmap was drawn on HW accelerated canvas, it holds a reference to it and on next
-            // drawing pass the updated content of the bitmap will be rendered on the screen
-            updateBlur();
-            return true;
-        }
+    private final ViewTreeObserver.OnPreDrawListener drawListener = () -> {
+        // Not invalidating a View here, just updating the Bitmap.
+        // This relies on the HW accelerated bitmap drawing behavior in Android
+        // If the bitmap was drawn on HW accelerated canvas, it holds a reference to it and on next
+        // drawing pass the updated content of the bitmap will be rendered on the screen
+        updateBlur();
+        return true;
     };
 
     private boolean blurEnabled = true;
     private boolean initialized;
-
-    @Nullable
-    private Drawable frameClearDrawable;
 
     /**
      * @param blurView  View which will draw it's blurred underlying content
@@ -105,12 +96,6 @@ public final class PreDrawBlurController implements BlurController {
     void updateBlur() {
         if (!blurEnabled || !initialized) {
             return;
-        }
-
-        if (frameClearDrawable == null) {
-            internalBitmap.eraseColor(Color.TRANSPARENT);
-        } else {
-            frameClearDrawable.draw(internalCanvas);
         }
 
         internalCanvas.save();
