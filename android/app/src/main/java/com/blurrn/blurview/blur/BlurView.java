@@ -23,7 +23,7 @@ public class BlurView extends FrameLayout {
 
     private static final String TAG = BlurView.class.getSimpleName();
 
-    BlurController blurController = new NoOpController();
+    BlurController blurController;
 
     @ColorInt
     private int overlayColor;
@@ -83,31 +83,17 @@ public class BlurView extends FrameLayout {
      * @param rootView  root to start blur from.
      *                  Can be Activity's root content layout (android.R.id.content)
      *                  or (preferably) some of your layouts. The lower amount of Views are in the root, the better for performance.
-     * @param algorithm sets the blur algorithm
      * @return {@link BlurView} to setup needed params.
      */
-    public BlurViewFacade setupWith(@NonNull ViewGroup rootView, RenderEffectBlur algorithm) {
-        this.blurController.destroy();
-        BlurController blurController = new PreDrawBlurController(this, rootView, overlayColor, algorithm);
+    public BlurViewFacade setupWith(@NonNull ViewGroup rootView) {
+        if (this.blurController != null) {
+            this.blurController.destroy();
+        }
+        BlurController blurController = new PreDrawBlurController(this, rootView, overlayColor, new RenderEffectBlur());
         this.blurController = blurController;
 
         return blurController;
     }
-
-    /**
-     * @param rootView root to start blur from.
-     *                 Can be Activity's root content layout (android.R.id.content)
-     *                 or (preferably) some of your layouts. The lower amount of Views are in the root, the better for performance.
-     *                 <p>
-     *                 BlurAlgorithm is automatically picked based on the API version.
-     *                 It uses RenderEffectBlur on API 31+, and RenderScriptBlur on older versions.
-     * @return {@link BlurView} to setup needed params.
-     */
-    public BlurViewFacade setupWith(@NonNull ViewGroup rootView) {
-        return setupWith(rootView, new RenderEffectBlur());
-    }
-
-    // Setters duplicated to be able to conveniently change these settings outside of setupWith chain
 
     /**
      * @see BlurViewFacade#setBlurRadius(float)
