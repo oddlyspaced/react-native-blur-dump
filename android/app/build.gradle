@@ -116,5 +116,5 @@ dependencies {
     } else {
         implementation jscFlavor
     }
-    implementation 'com.github.Dimezis:BlurView:version-2.0.4'
+//    implementation 'com.github.Dimezis:BlurView:version-2.0.4'
 }

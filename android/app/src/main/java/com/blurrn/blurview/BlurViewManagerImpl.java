@@ -2,9 +2,9 @@ package com.blurrn.blurview;
 
 import android.view.View;
 
+import com.blurrn.blurview.blur.BlurView;
 import com.facebook.react.uimanager.ThemedReactContext;
 
-import eightbitlab.com.blurview.BlurView;
 
 import java.util.Objects;
 
