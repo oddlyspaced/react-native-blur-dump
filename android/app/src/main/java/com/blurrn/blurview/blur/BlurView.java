@@ -5,7 +5,6 @@ import static com.blurrn.blurview.blur.PreDrawBlurController.TRANSPARENT;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
-import android.os.Build;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.ViewGroup;
@@ -13,7 +12,6 @@ import android.widget.FrameLayout;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 
 import com.blurrn.R;
 
@@ -88,7 +86,7 @@ public class BlurView extends FrameLayout {
      * @param algorithm sets the blur algorithm
      * @return {@link BlurView} to setup needed params.
      */
-    public BlurViewFacade setupWith(@NonNull ViewGroup rootView, BlurAlgorithm algorithm) {
+    public BlurViewFacade setupWith(@NonNull ViewGroup rootView, RenderEffectBlur algorithm) {
         this.blurController.destroy();
         BlurController blurController = new PreDrawBlurController(this, rootView, overlayColor, algorithm);
         this.blurController = blurController;
@@ -105,9 +103,8 @@ public class BlurView extends FrameLayout {
      *                 It uses RenderEffectBlur on API 31+, and RenderScriptBlur on older versions.
      * @return {@link BlurView} to setup needed params.
      */
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
     public BlurViewFacade setupWith(@NonNull ViewGroup rootView) {
-        return setupWith(rootView, getBlurAlgorithm());
+        return setupWith(rootView, new RenderEffectBlur());
     }
 
     // Setters duplicated to be able to conveniently change these settings outside of setupWith chain
@@ -139,17 +136,5 @@ public class BlurView extends FrameLayout {
      */
     public BlurViewFacade setBlurEnabled(boolean enabled) {
         return blurController.setBlurEnabled(enabled);
-    }
-
-    @NonNull
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
-    private BlurAlgorithm getBlurAlgorithm() {
-        BlurAlgorithm algorithm;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            algorithm = new RenderEffectBlur();
-        } else {
-            algorithm = new RenderScriptBlur(getContext());
-        }
-        return algorithm;
     }
 }

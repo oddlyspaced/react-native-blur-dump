@@ -19,22 +19,18 @@ import androidx.annotation.RequiresApi;
  * It doesn't block the Main thread, however it can still cause an FPS drop,
  * because it's just in a different part of the rendering pipeline.
  */
-@RequiresApi(Build.VERSION_CODES.S)
-public class RenderEffectBlur implements BlurAlgorithm {
+public class RenderEffectBlur {
 
     private final RenderNode node = new RenderNode("BlurViewNode");
 
     private int height, width;
     private float lastBlurRadius = 1f;
 
-    @Nullable
-    public BlurAlgorithm fallbackAlgorithm;
     private Context context;
 
     public RenderEffectBlur() {
     }
 
-    @Override
     public Bitmap blur(@NonNull Bitmap bitmap, float blurRadius) {
         lastBlurRadius = blurRadius;
 
@@ -51,41 +47,25 @@ public class RenderEffectBlur implements BlurAlgorithm {
         return bitmap;
     }
 
-    @Override
     public void destroy() {
         node.discardDisplayList();
-        if (fallbackAlgorithm != null) {
-            fallbackAlgorithm.destroy();
-        }
     }
 
-    @Override
     public boolean canModifyBitmap() {
         return true;
     }
 
     @NonNull
-    @Override
     public Bitmap.Config getSupportedBitmapConfig() {
         return Bitmap.Config.ARGB_8888;
     }
 
-    @Override
     public float scaleFactor() {
         return BlurController.DEFAULT_SCALE_FACTOR;
     }
 
-    @Override
     public void render(@NonNull Canvas canvas, @NonNull Bitmap bitmap) {
-        if (canvas.isHardwareAccelerated()) {
-            canvas.drawRenderNode(node);
-        } else {
-            if (fallbackAlgorithm == null) {
-                fallbackAlgorithm = new RenderScriptBlur(context);
-            }
-            fallbackAlgorithm.blur(bitmap, lastBlurRadius);
-            fallbackAlgorithm.render(canvas, bitmap);
-        }
+        canvas.drawRenderNode(node);
     }
 
     void setContext(@NonNull Context context) {
