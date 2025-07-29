@@ -62,7 +62,6 @@ public final class PreDrawBlurController implements BlurController {
         this.overlayColor = overlayColor;
         // noinspection NewApi
         blurAlgorithm = algorithm;
-        algorithm.setContext(blurView.getContext());
 
         int measuredWidth = blurView.getMeasuredWidth();
         int measuredHeight = blurView.getMeasuredHeight();

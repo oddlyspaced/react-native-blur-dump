@@ -98,29 +98,29 @@ public class BlurView extends FrameLayout {
     /**
      * @see BlurViewFacade#setBlurRadius(float)
      */
-    public BlurViewFacade setBlurRadius(float radius) {
-        return blurController.setBlurRadius(radius);
+    public void setBlurRadius(float radius) {
+        blurController.setBlurRadius(radius);
     }
 
     /**
      * @see BlurViewFacade#setOverlayColor(int)
      */
-    public BlurViewFacade setOverlayColor(@ColorInt int overlayColor) {
+    public void setOverlayColor(@ColorInt int overlayColor) {
         this.overlayColor = overlayColor;
-        return blurController.setOverlayColor(overlayColor);
+        blurController.setOverlayColor(overlayColor);
     }
 
     /**
      * @see BlurViewFacade#setBlurAutoUpdate(boolean)
      */
-    public BlurViewFacade setBlurAutoUpdate(boolean enabled) {
-        return blurController.setBlurAutoUpdate(enabled);
+    public void setBlurAutoUpdate(boolean enabled) {
+        blurController.setBlurAutoUpdate(enabled);
     }
 
     /**
      * @see BlurViewFacade#setBlurEnabled(boolean)
      */
-    public BlurViewFacade setBlurEnabled(boolean enabled) {
-        return blurController.setBlurEnabled(enabled);
+    public void setBlurEnabled(boolean enabled) {
+        blurController.setBlurEnabled(enabled);
     }
 }
