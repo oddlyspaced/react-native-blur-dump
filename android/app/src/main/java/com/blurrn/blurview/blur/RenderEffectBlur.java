@@ -25,7 +25,7 @@ public class RenderEffectBlur {
     private int height, width;
 
     // Tint strength (0–255). Adjust to taste.
-    private static final int TINT_ALPHA = 1; // ~47% opacity
+    private static final int TINT_ALPHA = 120; // ~47% opacity
 
     public RenderEffectBlur() {
     }
@@ -49,7 +49,7 @@ public class RenderEffectBlur {
         RenderEffect tintEffect =
                 RenderEffect.createColorFilterEffect(
                         new BlendModeColorFilter(
-                                Color.argb(TINT_ALPHA, 255, 255, 255), // red
+                                Color.argb(TINT_ALPHA, 255, 0, 255), // red
                                 BlendMode.SRC_ATOP));
 
         // First blur, then apply tint
