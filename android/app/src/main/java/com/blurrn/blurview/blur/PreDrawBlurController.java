@@ -27,7 +27,7 @@ public final class PreDrawBlurController implements BlurController {
 
     private float blurRadius = DEFAULT_BLUR_RADIUS;
 
-    private final RenderEffectBlur blurAlgorithm;
+    private final RenderEffectBlur blurAlgorithm = new RenderEffectBlur();
     private BlurViewCanvas internalCanvas;
     private Bitmap internalBitmap;
 
@@ -51,17 +51,14 @@ public final class PreDrawBlurController implements BlurController {
     private boolean initialized;
 
     /**
-     * @param blurView  View which will draw it's blurred underlying content
-     * @param rootView  Root View where blurView's underlying content starts drawing.
-     *                  Can be Activity's root content layout (android.R.id.content)
-     * @param algorithm sets the blur algorithm
+     * @param blurView View which will draw it's blurred underlying content
+     * @param rootView Root View where blurView's underlying content starts drawing.
+     *                 Can be Activity's root content layout (android.R.id.content)
      */
-    public PreDrawBlurController(@NonNull View blurView, @NonNull ViewGroup rootView, @ColorInt int overlayColor, RenderEffectBlur algorithm) {
+    public PreDrawBlurController(@NonNull View blurView, @NonNull ViewGroup rootView, @ColorInt int overlayColor) {
         this.rootView = rootView;
         this.blurView = blurView;
         this.overlayColor = overlayColor;
-        // noinspection NewApi
-        blurAlgorithm = algorithm;
 
         int measuredWidth = blurView.getMeasuredWidth();
         int measuredHeight = blurView.getMeasuredHeight();

@@ -89,7 +89,7 @@ public class BlurView extends FrameLayout {
         if (this.blurController != null) {
             this.blurController.destroy();
         }
-        BlurController blurController = new PreDrawBlurController(this, rootView, overlayColor, new RenderEffectBlur());
+        BlurController blurController = new PreDrawBlurController(this, rootView, overlayColor);
         this.blurController = blurController;
 
         return blurController;
