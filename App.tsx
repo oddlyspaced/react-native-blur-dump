@@ -7,6 +7,7 @@
 
 import { NewAppScreen } from '@react-native/new-app-screen';
 import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
+import BlurView from './src/BlurView.android';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -14,6 +15,16 @@ function App() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+      <BlurView
+        style={{
+          position: 'absolute',
+          zIndex: 1,
+          top: '10%',
+          left: '10%',
+          width: 100,
+          height: 100,
+        }}
+      />
       <NewAppScreen templateFileName="App.tsx" />
     </View>
   );

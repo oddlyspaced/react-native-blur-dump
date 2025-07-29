@@ -36,5 +36,13 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "codegenConfig": {
+    "name": "rnblurview",
+    "type": "components",
+    "jsSrcsDir": "./src/fabric",
+    "android": {
+      "javaPackageName": "com.blurrn"
+    }
   }
 }
