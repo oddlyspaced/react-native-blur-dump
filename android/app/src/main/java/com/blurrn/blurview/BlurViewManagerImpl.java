@@ -26,7 +26,6 @@ class BlurViewManagerImpl {
                 .getDecorView();
         blurView
                 .setupWith(decorView.findViewById(android.R.id.content))
-                .setFrameClearDrawable(decorView.getBackground())
                 .setBlurRadius(defaultRadius);
         return blurView;
     }

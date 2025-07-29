@@ -69,7 +69,7 @@ public final class PreDrawBlurController implements BlurController {
         this.rootView = rootView;
         this.blurView = blurView;
         this.overlayColor = overlayColor;
-            // noinspection NewApi
+        // noinspection NewApi
         blurAlgorithm = algorithm;
         algorithm.setContext(blurView.getContext());
 
@@ -192,12 +192,6 @@ public final class PreDrawBlurController implements BlurController {
     @Override
     public BlurViewFacade setBlurRadius(float radius) {
         this.blurRadius = radius;
-        return this;
-    }
-
-    @Override
-    public BlurViewFacade setFrameClearDrawable(@Nullable Drawable frameClearDrawable) {
-        this.frameClearDrawable = frameClearDrawable;
         return this;
     }
 
