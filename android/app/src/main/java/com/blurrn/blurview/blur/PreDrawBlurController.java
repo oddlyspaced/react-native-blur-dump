@@ -73,16 +73,15 @@ public final class PreDrawBlurController implements BlurController {
     @SuppressWarnings("WeakerAccess")
     void init(int measuredWidth, int measuredHeight) {
         setBlurAutoUpdate(true);
-        SizeScaler sizeScaler = new SizeScaler(blurAlgorithm.scaleFactor());
-        if (sizeScaler.isZeroSized(measuredWidth, measuredHeight)) {
+        if (measuredWidth == 0 || measuredHeight == 0) {
             // Will be initialized later when the View reports a size change
             blurView.setWillNotDraw(true);
             return;
         }
 
         blurView.setWillNotDraw(false);
-        SizeScaler.Size bitmapSize = sizeScaler.scale(measuredWidth, measuredHeight);
-        internalBitmap = Bitmap.createBitmap(bitmapSize.width, bitmapSize.height, blurAlgorithm.getSupportedBitmapConfig());
+//        SizeScaler.Size bitmapSize = sizeScaler.scale(measuredWidth, measuredHeight);
+        internalBitmap = Bitmap.createBitmap(measuredWidth, measuredHeight, blurAlgorithm.getSupportedBitmapConfig());
         internalCanvas = new BlurViewCanvas(internalBitmap);
         initialized = true;
         // Usually it's not needed, because `onPreDraw` updates the blur anyway.

@@ -1,5 +1,4 @@
-import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNativeComponent';
-import type { ViewProps, HostComponent, ColorValue } from 'react-native';
+import { type ViewProps, type HostComponent, type ColorValue, codegenNativeComponent } from 'react-native';
 import type {
   WithDefault,
   Int32,

@@ -16,6 +16,7 @@ function App() {
     <View style={styles.container}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <BlurView
+        blurRadius={20}
         style={{
           position: 'absolute',
           zIndex: 1,
