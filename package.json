@@ -38,11 +38,16 @@
     "node": ">=18"
   },
   "codegenConfig": {
-    "name": "rnblurview",
+    "name": "AppSpec",
     "type": "components",
     "jsSrcsDir": "./src/fabric",
     "android": {
       "javaPackageName": "com.blurrn"
+    },
+    "ios": {
+      "componentProvider": {
+        "IOSBlurView": "RCTBlurView"
+      }
     }
   }
 }

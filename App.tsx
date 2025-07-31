@@ -7,7 +7,8 @@
 
 import { NewAppScreen } from '@react-native/new-app-screen';
 import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-import BlurView from './src/BlurView.android';
+import BlurView from './src/BlurView.ios';
+// import BlurView from './src/BlurView.android';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
