@@ -21,6 +21,7 @@ function App() {
         style={{
           position: 'absolute',
           zIndex: 1,
+          opacity: 0.5,
           top: '10%',
           left: '10%',
           width: 100,
