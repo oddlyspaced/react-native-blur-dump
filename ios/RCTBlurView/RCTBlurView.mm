@@ -10,7 +10,6 @@
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
 
-// MARK: - Private API hook
 @interface UIBlurEffect (Private)
 - (id)effectSettings;
 @end
@@ -22,7 +21,17 @@ using namespace facebook::react;
 static inline UIBlurEffectStyle const kDefaultBlurStyle = UIBlurEffectStyleLight;
 static inline CGFloat const kDefaultBlurRadius = 6.0;
 
-// MARK: - Custom Effect Subclass (blur radius only)
+// MARK: - KVC-safe helper
+
+static inline void RNSetSetting(id settings, NSString *key, id value) {
+  @try {
+    [settings setValue:value forKey:key];
+  } @catch (__unused NSException *e) {
+    // Silently ignore unknown keys on different iOS versions
+  }
+}
+
+// MARK: - Custom Effect Subclass
 
 @interface RNCustomBlurEffect : UIBlurEffect
 @property (nonatomic, strong, nullable) NSNumber *blurRadius;
@@ -35,15 +44,13 @@ static inline CGFloat const kDefaultBlurRadius = 6.0;
 + (instancetype)effectWithStyle:(UIBlurEffectStyle)style
                      blurRadius:(NSNumber * _Nullable)radius
 {
-  id base = [super effectWithStyle:style]; // create a genuine effect
-  object_setClass(base, self);             // swap class at runtime
-
+  id base = [super effectWithStyle:style];
+  object_setClass(base, self);
   RNCustomBlurEffect *effect = base;
   effect.blurRadius = radius;
   return effect;
 }
 
-// Associated storage for blur radius
 - (void)setBlurRadius:(NSNumber * _Nullable)radius {
   objc_setAssociatedObject(self, @selector(blurRadius),
                            radius, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -52,23 +59,35 @@ static inline CGFloat const kDefaultBlurRadius = 6.0;
   return objc_getAssociatedObject(self, @selector(blurRadius));
 }
 
-/**
- Called by the system. We inject only the blur radius here.
- */
 - (id)effectSettings
 {
   id settings = [super effectSettings];
+
+  // Keep blur radius if provided
   if (self.blurRadius != nil) {
-    [settings setValue:self.blurRadius forKey:@"blurRadius"];
+    RNSetSetting(settings, @"blurRadius", self.blurRadius);
   }
+
+  // 🔎 Remove all tint/luminance overlays
+  RNSetSetting(settings, @"grayscaleTintAlpha", @0); // kills white/gray wash
+  RNSetSetting(settings, @"luminanceAlpha", @0);     // kills luminance overlay
+  RNSetSetting(settings, @"colorTintAlpha", @0);     // kill any color tint
+  RNSetSetting(settings, @"colorTint", UIColor.clearColor);
+
+  // Some iOS versions expose a separate `tintColor`
+  // Use kCFNull to "unset" if present
+  RNSetSetting(settings, @"tintColor", (id)kCFNull);
+
+  // Keep saturation unless you want a “frosted” look removed too:
+  // RNSetSetting(settings, @"saturationDeltaFactor", @1.0);
+
   return settings;
 }
 
 - (id)copyWithZone:(NSZone *)zone
 {
   id copy = [super copyWithZone:zone];
-  object_setClass(copy, [self class]); // preserve subclass
-
+  object_setClass(copy, [self class]);
   objc_setAssociatedObject(copy, @selector(blurRadius),
                            self.blurRadius, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
   return copy;
@@ -85,13 +104,17 @@ static inline CGFloat const kDefaultBlurRadius = 6.0;
   UIVisualEffectView *_blurView;
 }
 
-#pragma mark - Lifecycle
-
 - (instancetype)init
 {
   if (self = [super init]) {
     _blurView = [[UIVisualEffectView alloc] initWithEffect:nil];
     _blurView.alpha = 1.0;
+
+    // Ensure full transparency behind the effect
+    _blurView.backgroundColor = UIColor.clearColor;
+    _blurView.contentView.backgroundColor = UIColor.clearColor;
+    self.backgroundColor = UIColor.clearColor;
+
     [self addSubview:_blurView];
 
     _blurView.effect = [self buildDefaultEffect];
@@ -99,15 +122,11 @@ static inline CGFloat const kDefaultBlurRadius = 6.0;
   return self;
 }
 
-#pragma mark - Layout
-
 - (void)layoutSubviews
 {
   [super layoutSubviews];
   _blurView.frame = self.bounds;
 }
-
-#pragma mark - Fabric plumbing
 
 - (void)updateProps:(Props::Shared const &)props
           oldProps:(Props::Shared const &)oldProps
@@ -124,8 +143,6 @@ static inline CGFloat const kDefaultBlurRadius = 6.0;
 {
   return concreteComponentDescriptorProvider<IOSBlurViewComponentDescriptor>();
 }
-
-#pragma mark - Helpers
 
 - (UIBlurEffect *)buildDefaultEffect
 {
