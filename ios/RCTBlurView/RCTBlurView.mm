@@ -1,4 +1,5 @@
 // RCTBlurView.mm
+
 #import "RCTBlurView.h"
 
 #import <react/renderer/components/AppSpec/ComponentDescriptors.h>
@@ -7,72 +8,84 @@
 #import <react/renderer/components/AppSpec/RCTComponentViewHelpers.h>
 
 #import <UIKit/UIKit.h>
-#import <objc/runtime.h>           // object_setClass, assoc. objects
+#import <objc/runtime.h>
 
+// MARK: - Private API hook (as in community blur)
 @interface UIBlurEffect (Private)
 - (id)effectSettings;
 @end
 
 using namespace facebook::react;
 
-#pragma mark - Private Blur-Effect Subclass
-//
-// Mirrors logic in @react-native-community/blur’s
-//   BlurEffectWithAmount.m
-//
+// MARK: - Defaults
+
+static inline UIBlurEffectStyle const kDefaultBlurStyle = UIBlurEffectStyleLight;
+static inline CGFloat const kDefaultBlurRadius = 12.0;
+static inline CGFloat const kDefaultTintAlpha  = 10.0; // matches original KVC usage
+static inline UIColor *DefaultTintColor(void) {
+  return [UIColor colorWithRed:0 green:1 blue:0 alpha:1];
+}
+
+// MARK: - Custom Effect Subclass
+
+/**
+ Subclassing hack that mirrors @react-native-community/blur.
+ We instantiate a real UIBlurEffect, then swap its class and
+ inject custom KVC values via -effectSettings.
+ */
 @interface RNCustomBlurEffect : UIBlurEffect
-@property (nonatomic,strong) NSNumber *blurRadius;
-@property (nonatomic,strong) UIColor  *colorTint;
+@property (nonatomic, strong, nullable) NSNumber *blurRadius;
+@property (nonatomic, strong, nullable) UIColor  *colorTint;
++ (instancetype)effectWithStyle:(UIBlurEffectStyle)style
+                     blurRadius:(nullable NSNumber *)radius
+                      colorTint:(nullable UIColor  *)tint;
 @end
 
 @implementation RNCustomBlurEffect
-@dynamic blurRadius, colorTint;
 
 + (instancetype)effectWithStyle:(UIBlurEffectStyle)style
-                     blurRadius:(NSNumber *)radius
-                      colorTint:(UIColor  *)tint
+                     blurRadius:(NSNumber * _Nullable)radius
+                      colorTint:(UIColor  * _Nullable)tint
 {
-  // 1. Create a *real* UIBlurEffect first …
-  id instance = [super effectWithStyle:style];
-  // 2. …then swap its class to our subclass at runtime.
-  object_setClass(instance, self);
+  id base = [super effectWithStyle:style];     // create a genuine effect
+  object_setClass(base, self);                 // swap class at runtime
 
-  RNCustomBlurEffect *effect = instance;
+  RNCustomBlurEffect *effect = base;
   effect.blurRadius = radius;
   effect.colorTint  = tint;
   return effect;
 }
 
-// store / retrieve properties via objc-runtime
-- (void)setBlurRadius:(NSNumber *)radius {
+// Associated storage keeps the public API surface minimal.
+- (void)setBlurRadius:(NSNumber * _Nullable)radius {
   objc_setAssociatedObject(self, @selector(blurRadius),
                            radius, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
-- (NSNumber *)blurRadius {
+- (NSNumber * _Nullable)blurRadius {
   return objc_getAssociatedObject(self, @selector(blurRadius));
 }
-- (void)setColorTint:(UIColor *)tint {
+
+- (void)setColorTint:(UIColor * _Nullable)tint {
   objc_setAssociatedObject(self, @selector(colorTint),
                            tint, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
-- (UIColor *)colorTint {
+- (UIColor * _Nullable)colorTint {
   return objc_getAssociatedObject(self, @selector(colorTint));
 }
 
 /**
- * Private entry-point used inside CoreAnimation.
- * We inject our radius & tint here.
+ Called by the system. We piggyback to inject our custom values.
  */
 - (id)effectSettings
 {
-  id settings = [super effectSettings];          // real settings object
+  id settings = [super effectSettings];
 
-  if (self.blurRadius) {
+  if (self.blurRadius != nil) {
     [settings setValue:self.blurRadius forKey:@"blurRadius"];
   }
-  if (self.colorTint) {
-    [settings setValue:self.colorTint            forKey:@"colorTint"];
-    [settings setValue:@(1.0)                    forKey:@"colorTintAlpha"];
+  if (self.colorTint != nil) {
+    [settings setValue:self.colorTint forKey:@"colorTint"];
+    [settings setValue:@(kDefaultTintAlpha) forKey:@"colorTintAlpha"];
   }
   return settings;
 }
@@ -80,17 +93,19 @@ using namespace facebook::react;
 - (id)copyWithZone:(NSZone *)zone
 {
   id copy = [super copyWithZone:zone];
-  object_setClass(copy, [self class]);           // preserve subclass
+  object_setClass(copy, [self class]); // preserve subclass on copy
+
+  // Mirror associated values
   objc_setAssociatedObject(copy, @selector(blurRadius),
                            self.blurRadius, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
   objc_setAssociatedObject(copy, @selector(colorTint),
                            self.colorTint,  OBJC_ASSOCIATION_RETAIN_NONATOMIC);
   return copy;
 }
+
 @end
 
-
-#pragma mark - Fabric View
+// MARK: - Fabric View
 
 @interface RCTBlurView () <RCTIOSBlurViewViewProtocol>
 @end
@@ -99,31 +114,21 @@ using namespace facebook::react;
   UIVisualEffectView *_blurView;
 }
 
+#pragma mark Lifecycle
+
 - (instancetype)init
 {
   if (self = [super init]) {
-
-    // Build the customised effect **before** attaching it to the view.
-    UIBlurEffect *effect =
-      [RNCustomBlurEffect effectWithStyle:UIBlurEffectStyleLight
-                               blurRadius:@1
-                                colorTint:[UIColor colorWithRed:0
-                                                           green:1
-                                                            blue:0
-                                                           alpha:1]];
-
-    // Create the blur view *without* an effect first
     _blurView = [[UIVisualEffectView alloc] initWithEffect:nil];
-    _blurView.alpha = 1.0;               // overall opacity
+    _blurView.alpha = 1.0;
     [self addSubview:_blurView];
 
-    // Now assign the mutated effect – ensures CoreImage rebuilds shader
-    _blurView.effect = effect;
+    _blurView.effect = [self buildDefaultEffect];
   }
   return self;
 }
 
-#pragma mark - Layout
+#pragma mark Layout
 
 - (void)layoutSubviews
 {
@@ -131,7 +136,7 @@ using namespace facebook::react;
   _blurView.frame = self.bounds;
 }
 
-#pragma mark - Fabric Boilerplate
+#pragma mark Fabric plumbing
 
 - (void)updateProps:(Props::Shared const &)props
           oldProps:(Props::Shared const &)oldProps
@@ -147,6 +152,15 @@ using namespace facebook::react;
 + (ComponentDescriptorProvider)componentDescriptorProvider
 {
   return concreteComponentDescriptorProvider<IOSBlurViewComponentDescriptor>();
+}
+
+#pragma mark Helpers
+
+- (UIBlurEffect *)buildDefaultEffect
+{
+  return [RNCustomBlurEffect effectWithStyle:kDefaultBlurStyle
+                                  blurRadius:@(kDefaultBlurRadius)
+                                   colorTint:DefaultTintColor()];
 }
 
 @end
