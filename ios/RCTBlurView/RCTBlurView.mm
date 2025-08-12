@@ -79,7 +79,7 @@ static inline void RNSetSetting(id settings, NSString *key, id value) {
   RNSetSetting(settings, @"tintColor", (id)kCFNull);
 
   // Keep saturation unless you want a “frosted” look removed too:
-  // RNSetSetting(settings, @"saturationDeltaFactor", @1.0);
+   RNSetSetting(settings, @"saturationDeltaFactor", @1.0);
 
   return settings;
 }
