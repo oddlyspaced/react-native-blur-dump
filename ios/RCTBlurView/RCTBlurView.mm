@@ -68,18 +68,13 @@ static inline void RNSetSetting(id settings, NSString *key, id value) {
     RNSetSetting(settings, @"blurRadius", self.blurRadius);
   }
 
-  // 🔎 Remove all tint/luminance overlays
-  RNSetSetting(settings, @"grayscaleTintAlpha", @0); // kills white/gray wash
-  RNSetSetting(settings, @"luminanceAlpha", @0);     // kills luminance overlay
-  RNSetSetting(settings, @"colorTintAlpha", @0);     // kill any color tint
+  // Remove built-in tint/luminance overlays so our custom tint is clean
+  RNSetSetting(settings, @"grayscaleTintAlpha", @0);
+  RNSetSetting(settings, @"luminanceAlpha", @0);
+  RNSetSetting(settings, @"colorTintAlpha", @0);
   RNSetSetting(settings, @"colorTint", UIColor.clearColor);
-
-  // Some iOS versions expose a separate `tintColor`
-  // Use kCFNull to "unset" if present
   RNSetSetting(settings, @"tintColor", (id)kCFNull);
-
-  // Keep saturation unless you want a “frosted” look removed too:
-   RNSetSetting(settings, @"saturationDeltaFactor", @1.0);
+  RNSetSetting(settings, @"saturationDeltaFactor", @1.0);
 
   return settings;
 }
@@ -102,6 +97,7 @@ static inline void RNSetSetting(id settings, NSString *key, id value) {
 
 @implementation RCTBlurView {
   UIVisualEffectView *_blurView;
+  UIView *_tintOverlay;
 }
 
 - (instancetype)init
@@ -110,13 +106,20 @@ static inline void RNSetSetting(id settings, NSString *key, id value) {
     _blurView = [[UIVisualEffectView alloc] initWithEffect:nil];
     _blurView.alpha = 1.0;
 
-    // Ensure full transparency behind the effect
+    // Clear backgrounds to let blur/tint read underlying content
     _blurView.backgroundColor = UIColor.clearColor;
     _blurView.contentView.backgroundColor = UIColor.clearColor;
     self.backgroundColor = UIColor.clearColor;
 
     [self addSubview:_blurView];
 
+    // 50% cyan (#00ffff) tint overlay above the blur
+    _tintOverlay = [UIView new];
+    _tintOverlay.userInteractionEnabled = NO;
+    _tintOverlay.backgroundColor = [UIColor colorWithRed:0.0 green:1.0 blue:1.0 alpha:0.5];
+    [self addSubview:_tintOverlay];
+
+    // initial effect
     _blurView.effect = [self buildDefaultEffect];
   }
   return self;
@@ -126,6 +129,8 @@ static inline void RNSetSetting(id settings, NSString *key, id value) {
 {
   [super layoutSubviews];
   _blurView.frame = self.bounds;
+  _tintOverlay.frame = self.bounds;
+  [self bringSubviewToFront:_tintOverlay];
 }
 
 - (void)updateProps:(Props::Shared const &)props
