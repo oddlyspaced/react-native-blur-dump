@@ -116,7 +116,7 @@ static inline void RNSetSetting(id settings, NSString *key, id value) {
     // 50% cyan (#00ffff) tint overlay above the blur
     _tintOverlay = [UIView new];
     _tintOverlay.userInteractionEnabled = NO;
-    _tintOverlay.backgroundColor = [UIColor colorWithRed:0.0 green:1.0 blue:1.0 alpha:0.5];
+    _tintOverlay.backgroundColor = [UIColor colorWithRed:0.0 green:1.0 blue:1.0 alpha:0.05];
     [self addSubview:_tintOverlay];
 
     // initial effect

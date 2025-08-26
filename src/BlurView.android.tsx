@@ -24,7 +24,7 @@ export type BlurViewProps = ViewProps & {
   autoUpdate?: boolean;
 };
 
-const BlurView = forwardRef<View, BlurViewProps>(
+const BlurViewAndroid = forwardRef<View, BlurViewProps>(
   (
     {
       downsampleFactor,
@@ -110,4 +110,4 @@ const styles = StyleSheet.create<{ transparent: ViewStyle }>({
   transparent: { backgroundColor: 'transparent' },
 });
 
-export default BlurView;
+export default BlurViewAndroid;
